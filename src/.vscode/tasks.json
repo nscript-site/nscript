@@ -1,0 +1,58 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceRoot}/Dotnet.Script/Dotnet.Script.csproj",
+        "/property:GenerateFullPaths=true"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "test",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "test",
+        "-c",
+        "release",
+        "-f",
+        "netcoreapp3.1",
+        "${workspaceFolder}/Dotnet.Script.Tests/DotNet.Script.Tests.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "test with code coverage",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "test",
+        "-c",
+        "release",
+        "-f",
+        "netcoreapp3.1",
+        "/p:CollectCoverage=true",
+        "/p:Exclude=\"[xunit*]*\"",
+        "/p:CoverletOutputFormat=lcov",
+        "${workspaceFolder}/Dotnet.Script.Tests/DotNet.Script.Tests.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    }
+  ]
+}

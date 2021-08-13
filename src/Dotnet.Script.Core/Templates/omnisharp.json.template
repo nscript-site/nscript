@@ -1,0 +1,6 @@
+﻿{
+  "script": {
+    "enableScriptNuGetReferences": true,
+    "defaultTargetFramework": "N/A"
+  }
+}
