@@ -117,7 +117,7 @@ Console.WriteLine("Hello world");
 "--"之后的所有参数都通过以下方式传递到脚本：
 
 ```shell
-dotnet script foo.csx -- arg1 arg2 arg3
+nscript foo.csx -- arg1 arg2 arg3
 ```
 
 可以使用全局"Args"集合访问脚本上下文中的参数：
@@ -132,7 +132,7 @@ foreach (var arg in Args)
 "--"之前的所有参数都由"ncript"处理。例如，以下命令行
 
 ```shell
-dotnet script -d foo.csx -- -d
+nscript -d foo.csx -- -d
 ```
 会将 "--" 之前的 "-d" 传递给 "nscript" 并启用调试模式，而 "--" 之后的 "-d" 将传递给脚本，以便自己解释参数。
 
@@ -194,6 +194,41 @@ dotnet script 写简单的脚本比较方便，但是写桌面程序或web程序
 ```
 
 其中，aspnet.csx 和 winui.csx 分别是写 asp.net 程序和 wpf/winform 程序所需要引用的 dll，可直接 load 来写相关脚本。httpserver.csx 是一个 asp.net webapi 脚本示例。eserver.csx 是使用 [EmbedIO](https://github.com/unosquare/embedio) 的 webapi 脚本示例。[EmbedIO](https://github.com/unosquare/embedio) 是一款跨平台、轻量级 Web Server 库，觉得 asp.net 过于重的，可以试试使用 [EmbedIO](https://github.com/unosquare/embedio).
+
+下面是 `eserver.csx` 的内容，很简单不是？！
+
+```c#
+#r "nuget: EmbedIO, 3.4.3"
+
+using EmbedIO;
+using EmbedIO.WebApi;
+using EmbedIO.Actions;
+using EmbedIO.Files;
+
+WebServer CreateWebServer(string url)
+{
+    var server = new WebServer(o => o
+            .WithUrlPrefix(url)
+            .WithMode(HttpListenerMode.EmbedIO))
+        .WithLocalSessionManager()
+        .WithStaticFolder("/static/", "./webroot", true, m => m
+           .WithContentCaching(true)) // Add static files after other modules to avoid conflicts
+        .WithModule(new ActionModule("/api", HttpVerbs.Get, HandleApi))
+        .WithModule(new ActionModule("/", HttpVerbs.Any, ctx => ctx.SendDataAsync(new { Message = "Hello!" })))
+        ;
+    return server;
+}
+
+Task HandleApi(IHttpContext ctx)
+{
+    return ctx.SendDataAsync("api");
+}
+
+var url = "http://*:5000/";
+var server = CreateWebServer(url);
+server.RunAsync();
+Console.ReadKey();
+```
 
 ### 缓存
 
@@ -416,7 +451,7 @@ Attach Debugger (VS Code)
 我们可以在执行脚本时指定配置。
 
 ```shell
-dotnet script foo.csx -c release
+nscript foo.csx -c release
 ```
 
 ## nullable
