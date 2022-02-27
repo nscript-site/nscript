@@ -1,124 +1,75 @@
-# dotnet script
+# nscript
 
-Run C# scripts from the .NET CLI, define NuGet packages inline and edit/debug them in VS Code - all of that with full language services support from OmniSharp.
+nscript 是面向图形、图像、语音、视频、AI、RPA、生物医药计算的高性能脚本语言，它是 python + cpp 的替代方案。nscript 拥有脚本、jit、aot 三种运行模式，拥有媲美 python 的开发速度和接近 cpp 的性能，拥有强大的静态类型系统和丰富的类库。可以在 vscode 里编辑与调试。它可以用做胶水语言，可以方便的开发 webapi，也可以写简单的桌面程序，还可以进行云原生开发（实现中....）。它基于 [dotnet-script](https://github.com/filipw/dotnet-script) 发展而来。
 
-## Build status
+## 语言的定位
 
-[![Build Status](https://bernhardrichter.visualstudio.com/dotnet-script/_apis/build/status/filipw.dotnet-script?branchName=master)](https://bernhardrichter.visualstudio.com/dotnet-script/_build/latest?definitionId=4&branchName=master)
+有人会问，为什么要弄一门新的语言，是现有语言不好吗？
 
-## NuGet Packages
+是的，现有开发语言确实不好。
 
-| Name                                  | Version                                                      | Framework(s)                     |
-| ------------------------------------- | ------------------------------------------------------------ | -------------------------------- |
-| `dotnet-script`                       | [![Nuget](http://img.shields.io/nuget/v/dotnet-script.svg?maxAge=10800)](https://www.nuget.org/packages/dotnet-script/) | `netcoreapp2.1`, `netcoreapp3.1` |
-| `Dotnet.Script`                       | [![Nuget](http://img.shields.io/nuget/v/dotnet.script.svg?maxAge=10800)](https://www.nuget.org/packages/dotnet.script/) | `netcoreapp2.1`, `netcoreapp3.1` |
-| `Dotnet.Script.Core`                  | [![Nuget](http://img.shields.io/nuget/v/Dotnet.Script.Core.svg?maxAge=10800)](https://www.nuget.org/packages/Dotnet.Script.Core/) | `netstandard2.0`                 |
-| `Dotnet.Script.DependencyModel`       | [![Nuget](http://img.shields.io/nuget/v/Dotnet.Script.DependencyModel.svg?maxAge=10800)](https://www.nuget.org/packages/Dotnet.Script.DependencyModel/) | `netstandard2.0`                 |
-| `Dotnet.Script.DependencyModel.Nuget` | [![Nuget](http://img.shields.io/nuget/v/Dotnet.Script.DependencyModel.Nuget.svg?maxAge=10800)](https://www.nuget.org/packages/Dotnet.Script.DependencyModel.Nuget/) | `netstandard2.0`                 |
+Python 是一个极端，它是动态类型的语言，写起来很舒服，但是代码量一大，维护的难度就会变大，同时性能低下到有时能让你发狂。C++ 语言是另一个极端，可以做到最优秀的性能，但是开发速度慢，编译速度慢，一不小心就会出错。Python + C++ 是一个合理的搭配，然而团队中需要两者都懂的人，不然，当遇到无法通过调包来解决问题时，就会遇到瓶颈。
 
-## Installing
+java 是另一大生态，这个生态中，jvm 以及语言自身设计的过于保守，虽然自 java 8 之后，java 语言已经比较好使了，然而一些基础设施的缺乏，直接用它来处理非结构化数据蹩手蹩脚，使用 java 处理过 rgb 颜色的童靴们有深刻的体验。而无法自定义值类型，处理大量的小对象会对 gc 造成过大的压力，使得在很多场景用不了。
 
-### Prerequisites
+nscript 源自 dotnet script，dotnet 是 C# 的脚本语言，那么为什么不直接用 C# 语言呢？主要是非技术原因。C# 语言虽然在海外发展的不错，在国内由于历史原因，几乎社会性死亡了。以其拯救它，还不如开辟一个新路线、新社区出来。
 
-The only thing we need to install is [.NET Core 2.1+ SDK](https://www.microsoft.com/net/download/core). In order to use C# 8.0 features, [.NET Core 3.1+ SDK](https://www.microsoft.com/net/download/core) must be installed.
+微软对 C# 语言的定位一直是有重大问题的，掺杂了众多的商业因素在其中，虽然自 .net core 的发布后，开始迷途知返，然而已经失去了程序员们太多的信任，导致在国内没办法流行。而按照微软的既定策略，再度流行的难度依然很低。国内的 Web 领域，目前是 java 的天下。人工智能，又是 Python / C++ 的领地。生态位被抢走了，再要恢复，难上加难。
 
-### .NET Core Global Tool
+这也是为什么改名 nscript 的原因 - 卸下历史的包袱，面向未来，将它改造成面向多媒体数据处理、AI、分布式计算的脚本语言。
 
-.NET Core 2.1 introduces the concept of global tools meaning that you can install `dotnet-script` using nothing but the .NET CLI.
+由于支持 struct 和指针，以及对 simd 的支持，nscript 非常适合于密集计算，其CPU需求和内存需求大大低于 java，远低于 python，接近于 C++ 程序，而程序的开发速度和可维护性，远优于 C++。对于云原生来说，这是非常大的优势。随着国内的产业升级，对高性能分布式计算具有强烈的需求，这一领域具备成为王者的潜力，而 nscript 志在于此，是当下唯一可以实现快速开发、快速部署、快速启动、快速计算的云原生语言。
 
-```shell
-dotnet tool install -g dotnet-script
+在传统企业中，存在相当大数量的 C# 程序员。随着企业数字化进程的加速，人工智能企业服务的全面推进，这部分生态是可以重建的。而对 AI 应用的支持，C# 理应具有一定的优势。然而，在国内传播的并不多。无它，没有人推广。可以说得上生态的，还有 Unity 独木撑起的 3D 部分。随着元宇宙概念的火热，这一部分生态会进一步扩张。
 
-You can invoke the tool using the following command: dotnet-script
-Tool 'dotnet-script' (version '0.22.0') was successfully installed.
-```
+nscript 的定位：
 
-The advantage of this approach is that you can use the same command for installation across all platforms.
+- nscript 是面向云原生的语言，未来，对于密集型计算任务，只需要写一段脚本，一键就可以发布到上万个计算节点，启动镜像函数进行计算，只对计算所耗费的资源按需付费。
 
-> ⚠️ In order to use the global tool you need [.NET Core SDK 2.1.300](https://www.microsoft.com/net/download/dotnet-core/sdk-2.1.300) or higher. The earlier previews and release candidates of .NET Core 2.1 are not supported.
+- nscript 是面向 AI 的语言，它能够非常容易集成常见的推理模型，让传统行业的程序员方便的进行AI应用的开发、集成和维护。
 
-.NET Core SDK also supports viewing a list of installed tools and their uninstallation.
+- nscript 是面向 3D 和元宇宙的语言，使用它，可以非常容易的创建3D内容和应用。
 
-```shell
-dotnet tool list -g
+## 安装
 
-Package Id         Version      Commands
----------------------------------------------
-dotnet-script      0.22.0       dotnet-script
-```
+需要先下载安装 [.NET 6.0+ SDK](https://www.microsoft.com/net/download/core). 对于低于 6.0 的版本，也许可以用，也许不可以用, 不再进行测试和兼容。
 
-```shell
-dotnet tool uninstall dotnet-script -g
+nscript 目前未提供安装包，请自行下载编译，设置环境变量，使得 nscript 可直接访问。windows 环境下，请将 nscript.exe 所在目录加入 PATH 环境变量中。linux, macosx 下未测试，应该不难，请自行测试。
 
-Tool 'dotnet-script' (version '0.22.0') was successfully uninstalled.
-```
+## 使用
 
-### Windows
-
-```powershell
-choco install dotnet.script
-```
-
-We also provide a PowerShell script for installation.
-
-```powershell
-(new-object Net.WebClient).DownloadString("https://raw.githubusercontent.com/filipw/dotnet-script/master/install/install.ps1") | iex
-```
-
-### Linux and Mac
-
-```shell
-curl -s https://raw.githubusercontent.com/filipw/dotnet-script/master/install/install.sh | bash
-```
-
-If permission is denied we can try with `sudo`
-
-```shell
-curl -s https://raw.githubusercontent.com/filipw/dotnet-script/master/install/install.sh | sudo bash
-```
-
-### Docker
-
-A Dockerfile for running dotnet-script in a Linux container is available. Build:
-
-```shell
-cd build
-docker build -t dotnet-script -f Dockerfile ..
-```
-
-And run:
-
-```shell
-docker run -it dotnet-script --version
-```
-
-### Github
-
-You can manually download all the releases in `zip` format from the [GitHub releases page](https://github.com/filipw/dotnet-script/releases).
-
-## Usage
-
-Our typical `helloworld.csx` might look like this:
+编辑文件 `helloworld.csx`，包含下面内容:
 
 ```cs
 Console.WriteLine("Hello world!");
 ```
 
-That is all it takes and we can execute the script. Args are accessible via the global Args array.
+输入下列指令即可执行脚本:
 
 ```
-dotnet script helloworld.csx
+nscript helloworld.csx
 ```
 
-### Scaffolding
+### 开发环境
 
-Simply create a folder somewhere on your system and issue the following command.
+VS Code 安装 C# 插件，可直接支持 nscript 脚本的开发和调试。不过，当前版本的 omnisharp 对 .net 6.0 下的脚本支持存在问题。我 fork 了一个分支 (omnisharp-roslyn-nex)[https://github.com/nscript-site/omnisharp-roslyn-next] 解决了这个问题。请自行下载编译，修改 VS Code 中设置项后重启 VS Code 即可：
+
+```
+    "omnisharp.useModernNet": true,
+    "omnisharp.path": [PATH TO YOUT 'OmniSharp.dll'
+```
+
+有点麻烦是不？不想麻烦，就等待 omnisharp 的更新吧。
+
+### 脚手架
+
+通过 init 指令，可以生成脚手架脚本。
 
 ```shell
-dotnet script init
+nscript init
 ```
 
-This will create `main.csx` along with the launch configuration needed to debug the script in VS Code.
+这将生成 `main.csx` 文件，以及 launch 配置文件，方便在 VS Code 下调试脚本. 生成的文件结构如下：
 
 ```shell
 .
@@ -128,13 +79,13 @@ This will create `main.csx` along with the launch configuration needed to debug 
 └── omnisharp.json
 ```
 
-We can also initialize a folder using a custom filename.
+我们也可以指定创建的文件名称.
 
 ```shell
-dotnet script init custom.csx
+nscript init custom.csx
 ```
 
-Instead of `main.csx` which is the default, we now have a file named `custom.csx`.
+这样，创建的就不是 `main.csx` 文件, 而是 `custom.csx` 文件.
 
 ```shell
 .
@@ -144,11 +95,11 @@ Instead of `main.csx` which is the default, we now have a file named `custom.csx
 └── omnisharp.json
 ```
 
-> Note: Executing `dotnet script init` inside a folder that already contains one or more script files will not create the `main.csx` file.
+> 注: 执行 `nscript init` 时，不会覆盖目录中已有的文件.
 
-### Running scripts
+### 运行脚本
 
-Scripts can be executed directly from the shell as if they were executables.
+脚本可通过 shell 直接执行: 
 
 ```bash
 foo.csx arg1 arg2 arg3
@@ -156,34 +107,20 @@ foo.csx arg1 arg2 arg3
 
 > OSX/Linux
 >
-> Just like all scripts, on OSX/Linux you need to have a `#!` and mark the file as executable via **chmod +x foo.csx**.
-> If you use **dotnet script init** to create your csx it will automatically have the `#!` directive and be marked as
-> executable.
-
-The OSX/Linux shebang directive should be **#!/usr/bin/env dotnet-script**
+> 所有脚本一样，在OSX/Linux上，你需要有一个"#！"，并通过**chmod +x foo.csx**将文件标记为可执行文件。如果您使用 **nscript init** 来创建 csx，它将自动具有 '#！' 指令并被标记为可执行文件。
 
 ```cs
-#!/usr/bin/env dotnet-script
+#!/usr/bin/env nscript
 Console.WriteLine("Hello world");
 ```
 
-You can execute your script using **dotnet script** or **dotnet-script**, which allows you to pass arguments to control your script execution more.
-
-```bash
-foo.csx arg1 arg2 arg3
-dotnet script foo.csx -- arg1 arg2 arg3
-dotnet-script foo.csx -- arg1 arg2 arg3
-```
-
-#### Passing arguments to scripts
-
-All arguments after `--` are passed to the script in the following way:
+"--"之后的所有参数都通过以下方式传递到脚本：
 
 ```shell
 dotnet script foo.csx -- arg1 arg2 arg3
 ```
 
-Then you can access the arguments in the script context using the global `Args` collection:
+可以使用全局"Args"集合访问脚本上下文中的参数：
 
 ```c#
 foreach (var arg in Args)
@@ -192,195 +129,138 @@ foreach (var arg in Args)
 }
 ```
 
-All arguments before `--` are processed by `dotnet script`. For example, the following command-line
+"--"之前的所有参数都由"ncript"处理。例如，以下命令行
 
 ```shell
 dotnet script -d foo.csx -- -d
 ```
+会将 "--" 之前的 "-d" 传递给 "nscript" 并启用调试模式，而 "--" 之后的 "-d" 将传递给脚本，以便自己解释参数。
 
-will pass the `-d` before `--` to `dotnet script` and enable the debug mode whereas the `-d` after `--` is passed to script for its own interpretation of the argument.
+### 引用 NuGet 包
 
-### NuGet Packages
-
-`dotnet script` has built-in support for referencing NuGet packages directly from within the script.
+可以从脚本中引用 NuGet 包t.
 
 ```c#
 #r "nuget: AutoMapper, 6.1.0"
 ```
 
-![package](https://user-images.githubusercontent.com/1034073/30176983-98a6b85e-9404-11e7-8855-4ae65a20d6b1.gif)
+> 注意：Omnisharp 在添加新的包引用后需要重新启动
 
-> Note: Omnisharp needs to be restarted after adding a new package reference
+可以在脚本根文件夹中使用 `NuGet.Config` 文件定义包源。除了在脚本执行期间使用之外，它还将由 `OmniSharp` 使用，`OmniSharp` 为从这些包源解析的包提供语言服务。
 
-#### Package Sources
+作为维护本地 `NuGet.Config` 文件的替代方法，我们可以在用户级别或计算机级别全局定义这些包源，如 [Configuring NuGet Behaviour](https://docs.microsoft.com/en-us/nuget/reference/nuget-config-file) 中所述。
 
-We can define package sources using a `NuGet.Config` file in the script root folder. In addition to being used during execution of the script, it will also be used by `OmniSharp` that provides language services for packages resolved from these package sources.
-
-As an alternative to maintaining a local `NuGet.Config` file we can define these package sources globally either at the user level or at the computer level as described in [Configuring NuGet Behaviour](https://docs.microsoft.com/en-us/nuget/reference/nuget-config-file)
-
-It is also possible to specify packages sources when executing the script.
+还可以在执行脚本时指定包源.
 
 ```shell
-dotnet script foo.csx -s https://SomePackageSource
+ncript foo.csx -s https://SomePackageSource
 ```
 
-Multiple packages sources can be specified like this:
+可以按如下方式指定多个包源：
 
 ```shell
-dotnet script foo.csx -s https://SomePackageSource -s https://AnotherPackageSource
+nscript foo.csx -s https://SomePackageSource -s https://AnotherPackageSource
 ```
 
-### Creating DLLs or Exes from a CSX file
+### 引用 dll 或其它脚本文件
 
-Dotnet-Script can create a standalone executable or DLL for your script.
+可以通过 `#r` 指令直接引用 dll, 例如：
 
-| Switch | Long switch                     | description                                                                                                         |
-| ------ | ------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| -o     | --output                        | Directory where the published executable should be placed. Defaults to a 'publish' folder in the current directory. |
-| -n     | --name                          | The name for the generated DLL (executable not supported at this time). Defaults to the name of the script.         |
-|        | --dll                           | Publish to a .dll instead of an executable.                                                                         |
-| -c     | --configuration <configuration> | Configuration to use for publishing the script [Release/Debug]. Default is "Debug"                                  |
-| -d     | --debug                         | Enables debug output.                                                                                               |
-| -r     | --runtime                       | The runtime used when publishing the self contained executable. Defaults to your current runtime.                   |
+```
+#r "../Geb.Image.dll"
+```
 
-The executable you can run directly independent of dotnet install, while the DLL can be run using the dotnet CLI like this:
+dll 的路径可以是直接路径或相对路径。
+
+### 引用其他脚本文件
+
+可以通过 `#load` 指令加载其它脚本文件, 例如：
+
+```
+#load "base.csx"
+```
+
+### snippets
+
+dotnet script 写简单的脚本比较方便，但是写桌面程序或web程序相关的脚本非常不方便。nscript 提供了 snippets 指令，运行 `nscript snippets`，可以生成常用 snippets. 生成的文件如下：
 
 ```shell
-dotnet script exec {path_to_dll} -- arg1 arg2
+.
+├── snippets
+│   └── aspnet.csx
+│   └── eserver.csx
+│   └── httpserver.csx
+│   └── winui.csx
 ```
 
-### Caching
+其中，aspnet.csx 和 winui.csx 分别是写 asp.net 程序和 wpf/winform 程序所需要引用的 dll，可直接 load 来写相关脚本。httpserver.csx 是一个 asp.net webapi 脚本示例。eserver.csx 是使用 [EmbedIO](https://github.com/unosquare/embedio) 的 webapi 脚本示例。[EmbedIO](https://github.com/unosquare/embedio) 是一款跨平台、轻量级 Web Server 库，觉得 asp.net 过于重的，可以试试使用 [EmbedIO](https://github.com/unosquare/embedio).
 
-We provide two types of caching, the `dependency cache` and the `execution cache` which is explained in detail below. In order for any of these caches to be enabled, it is required that all NuGet package references are specified using an exact version number. The reason for this constraint is that we need to make sure that we don't execute a script with a stale dependency graph.
+### 缓存
 
-#### Dependency Cache
+这里是 dotnet script 需要改进的地方。当 a.csx 引用 b.dll 时，当 b.dll 改变了，直接运行 a.csx 仍然引用的是改变前的 dll。可以通过传递 **--no-cache** 标记来覆盖自动缓存，这样每次执行脚本时都进行编译编译
+。
+```shell
+nscript --no-cache a.csx
+```
 
-In order to resolve the dependencies for a script, a `dotnet restore` is executed under the hood to produce a `project.assets.json` file from which we can figure out all the dependencies we need to add to the compilation.
-This is an out-of-process operation and represents a significant overhead to the script execution. So this cache works by looking at all the dependencies specified in the script(s) either in the form of NuGet package references or assembly file references. If these dependencies matches the dependencies from the last script execution, we skip the restore and read the dependencies from the already generated `project.assets.json` file. If any of the dependencies has changed, we must restore again to obtain the new dependency graph.
+未来，nscript 会改进为判断引用的 dll 是否改动，若改动则重新编译，以减少对 --no-cache 的使用。
 
-#### Execution cache
+### 调试
 
-In order to execute a script it needs to be compiled first and since that is a CPU and time consuming operation, we make sure that we only compile when the source code has changed. This works by creating a SHA256 hash from all the script files involved in the execution. This hash is written to a temporary location along with the DLL that represents the result of the script compilation. When a script is executed the hash is computed and compared with the hash from the previous compilation. If they match there is no need to recompile and we run from the already compiled DLL. If the hashes don't match, the cache is invalidated and we recompile.
-
-> You can override this automatic caching by passing **--no-cache** flag, which will bypass both caches and cause dependency resolution and script compilation to happen every time we execute the script.
-
-#### Cache Location
-
-The temporary location used for caches is a sub-directory named `dotnet-script` under (in order of priority):
-
-1. The path specified for the value of the environment variable named `DOTNET_SCRIPT_CACHE_LOCATION`, if defined and value is not empty.
-2. Linux distributions only: `$XDG_CACHE_HOME` if defined otherwise `$HOME/.cache`
-3. macOS only: `~/Library/Caches`
-4. The value returned by [`Path.GetTempPath`](https://docs.microsoft.com/en-us/dotnet/api/system.io.path.gettemppath) for the platform.
-
-###
-
-### Debugging
-
-The days of debugging scripts using `Console.WriteLine` are over. One major feature of `dotnet script` is the ability to debug scripts directly in VS Code. Just set a breakpoint anywhere in your script file(s) and hit F5(start debugging)
+可以在 VS Code 里面直接调试 `nscript` 脚本，只需在脚本文件中的任何位置设置断点，然后按F5（开始调试）。下面录屏是 `dotnet script` 的调试录屏，做为它的魔改版本，`nscript` 的调试操作也一样。
 
 ![debug](https://user-images.githubusercontent.com/1034073/30173509-2f31596c-93f8-11e7-9124-ca884cf6564e.gif)
 
-### Script Packages
+### 发布
 
-Script packages are a way of organizing reusable scripts into NuGet packages that can be consumed by other scripts. This means that we now can leverage scripting infrastructure without the need for any kind of bootstrapping.
+`dotnet script`的发布功能不强。nscript 未来会提供易用的发布功能(dotnet publish 的发布指令也比较复杂)，未来会支持以下发布模式：
 
-#### Creating a script package
+- JIT：默认参数等价于 dotnet publish 下的 `-c release /p:PublishSingleFile=true /p:PublishTrimmed=true /p:EnableCompressionInSingleFile=true --self-contained`，经过测试，一个简单的 hello world 的发布尺寸为 5M 左右，使用 一个简单的 [EmbedIO](https://github.com/unosquare/embedio) webapi 程序，发布尺寸为 11-12M，这个尺寸已经非常小了，足以和 golang 媲美了；
 
-A script package is just a regular NuGet package that contains script files inside the `content` or `contentFiles` folder.
+- AOT：通过简单配置，能支持 AOT 发布，[zerosharp](https://github.com/MichalStrehovsky/zerosharp) 中，AOT程序可以做到数k的尺寸；
 
-The following example shows how the scripts are laid out inside the NuGet package according to the [standard convention](https://docs.microsoft.com/en-us/nuget/schema/nuspec#including-content-files) .
+- 云原生：云原生会作为语言的基础设施，方便脚本的大规模部署和执行。
 
-```shell
-└── contentFiles
-    └── csx
-        └── netstandard2.0
-            └── main.csx
-```
+与 .net 和 dotnet script 不同，nscript 会侧重于对云原生及系统开发的支持，侧重于对无反射程序的支持。
 
-This example contains just the `main.csx` file in the root folder, but packages may have multiple script files either in the root folder or in subfolders below the root folder.
+### 远程脚本
 
-When loading a script package we will look for an entry point script to be loaded. This entry point script is identified by one of the following.
-
-- A script called `main.csx` in the root folder
-- A single script file in the root folder
-
-If the entry point script cannot be determined, we will simply load all the scripts files in the package.
-
-> The advantage with using an entry point script is that we can control loading other scripts from the package.
-
-#### Consuming a script package
-
-To consume a script package all we need to do specify the NuGet package in the `#load`directive.
-
-The following example loads the [simple-targets](https://www.nuget.org/packages/simple-targets-csx) package that contains script files to be included in our script.
-
-```C#
-#! "netcoreapp2.1"
-#load "nuget:simple-targets-csx, 6.0.0"
-
-using static SimpleTargets;
-var targets = new TargetDictionary();
-
-targets.Add("default", () => Console.WriteLine("Hello, world!"));
-
-Run(Args, targets);
-```
-
-> Note: Debugging also works for script packages so that we can easily step into the scripts that are brought in using the `#load` directive.
-
-### Remote Scripts
-
-Scripts don't actually have to exist locally on the machine. We can also execute scripts that are made available on an `http(s)` endpoint.
-
-This means that we can create a Gist on Github and execute it just by providing the URL to the Gist.
-
-This [Gist](https://gist.githubusercontent.com/seesharper/5d6859509ea8364a1fdf66bbf5b7923d/raw/0a32bac2c3ea807f9379a38e251d93e39c8131cb/HelloWorld.csx) contains a script that prints out "Hello World"
-
-We can execute the script like this
-
-```shell
-dotnet script https://gist.githubusercontent.com/seesharper/5d6859509ea8364a1fdf66bbf5b7923d/raw/0a32bac2c3ea807f9379a38e251d93e39c8131cb/HelloWorld.csx
-```
-
-That is a pretty long URL, so why don't make it a [TinyURL](https://tinyurl.com/) like this:
+还可以执行在 `http(s)`上的脚本。
 
 ```shell
 dotnet script https://tinyurl.com/y8cda9zt
 ```
 
-### Script Location
+### 脚本位置
 
-A pretty common scenario is that we have logic that is relative to the script path. We don't want to require the user to be in a certain directory for these paths to resolve correctly so here is how to provide the script path and the script folder regardless of the current working directory.
+一个非常常见的情况是，我们有相对于脚本路径的逻辑。我们不希望要求用户位于某个目录中才能正确解析这些路径，因此下面介绍了如何提供脚本路径和脚本文件夹，而不管当前工作目录如何。
 
 ```c#
 public static string GetScriptPath([CallerFilePath] string path = null) => path;
 public static string GetScriptFolder([CallerFilePath] string path = null) => Path.GetDirectoryName(path);
 ```
 
-> Tip: Put these methods as top level methods in a separate script file and `#load` that file wherever access to the script path and/or folder is needed.
+> Tip: 将这些方法作为顶级方法放在单独的脚本文件中，并在需要访问脚本路径和/或文件夹的任何位置`#load`该文件。
 
 ## REPL
 
-This release contains a C# REPL (Read-Evaluate-Print-Loop). The REPL mode ("interactive mode") is started by executing `dotnet-script` without any arguments.
+和 `dotnet script` 一样支持 REPL 使用。
 
-The interactive mode allows you to supply individual C# code blocks and have them executed as soon as you press <kbd>Enter</kbd>. The REPL is configured with the same default set of assembly references and using statements as regular CSX script execution.
+### 基础使用
 
-### Basic usage
-
-Once `dotnet-script` starts you will see a prompt for input. You can start typing C# code there.
+一旦 `nscript` 启动，您将看到输入提示。可以开始在此处键入 C# 代码。
 
 ```
-~$ dotnet script
+~$ nscript
 > var x = 1;
 > x+x
 2
 ```
 
-If you submit an unterminated expression into the REPL (no `;` at the end), it will be evaluated and the result will be serialized using a formatter and printed in the output. This is a bit more interesting than just calling `ToString()` on the object, because it attempts to capture the actual structure of the object. For example:
+如果将未终止的表达式提交到 REPL 中（末尾没有";"），则将对其进行计算，并且将使用格式化程序序列化结果并将其打印在输出中。这比仅仅在对象上调用"ToString（）"更有趣，因为它试图捕获对象的实际结构。例如：
 
 ```
-~$ dotnet script
+~$ nscript
 > var x = new List<string>();
 > x.Add("foo");
 > x
@@ -391,12 +271,14 @@ List<string>(2) { "foo", "bar" }
 >
 ```
 
-### Inline Nuget packages
+### 内联 Nuget 包
 
 REPL also supports inline Nuget packages - meaning the Nuget packages can be installed into the REPL from _within the REPL_. This is done via our `#r` and `#load` from Nuget support and uses identical syntax.
 
+REPL 还支持内联 Nuget 包。这意味着可以在 REPL 中直接安装 Nuget 包。这是通过 Nuget 支持的"#r"和"#load"完成的。
+
 ```
-~$ dotnet script
+~$ nscript
 > #r "nuget: Automapper, 6.1.1"
 > using AutoMapper;
 > typeof(MapperConfiguration)
@@ -407,50 +289,50 @@ REPL also supports inline Nuget packages - meaning the Nuget packages can be ins
 [Submission#0+SimpleTargets+TargetDictionary]
 ```
 
-### Multiline mode
+### 多行模式
 
-Using Roslyn syntax parsing, we also support multiline REPL mode. This means that if you have an uncompleted code block and press <kbd>Enter</kbd>, we will automatically enter the multiline mode. The mode is indicated by the `*` character. This is particularly useful for declaring classes and other more complex constructs.
+使用Roslyn语法解析，我们还支持多行REPL模式。这意味着，如果您有未完成的代码块并按 <kbd>Enter</kbd> 键，我们将自动进入多行模式。该模式由"*"字符指示。这对于声明类和其他更复杂的构造特别有用。
 
 ```
-~$ dotnet script
+~$ nscript
 > class Foo {
 * public string Bar {get; set;}
 * }
 > var foo = new Foo();
 ```
 
-### REPL commands
+### REPL 命令
 
-Aside from the regular C# script code, you can invoke the following commands (directives) from within the REPL:
+除了常规 C# 脚本代码之外，还可以从 REPL 中调用以下命令（指令）：
 
-| Command  | Description                                                  |
+| 命令  | 描述                                                  |
 | -------- | ------------------------------------------------------------ |
-| `#load`  | Load a script into the REPL (same as `#load` usage in CSX)   |
-| `#r`     | Load an assembly into the REPL (same as `#r` usage in CSX)   |
-| `#reset` | Reset the REPL back to initial state (without restarting it) |
-| `#cls`   | Clear the console screen without resetting the REPL state    |
-| `#exit`  | Exits the REPL                                               |
+| `#load`  | 将脚本加载到 REPL 中（与 CSX 中的"#load"用法相同）   |
+| `#r`     | 将程序集加载到 REPL 中（与 CSX 中的"#r"用法相同）  |
+| `#reset` | 将 REPL 重置回初始状态（无需重新启动） |
+| `#cls`   | 清除控制台屏幕而不重置 REPL 状态    |
+| `#exit`  | 退出 REPL                                               |
 
-### Seeding REPL with a script
+### 使用脚本文件作为 REPL 的种子
 
-You can execute a CSX script and, at the end of it, drop yourself into the context of the REPL. This way, the REPL becomes "seeded" with your code - all the classes, methods or variables are available in the REPL context. This is achieved by running a script with an `-i` flag.
+您可以执行一个 CSX 脚本，并在脚本结束时将自己放入 REPL 的上下文中。这样，REPL 就会与你的代码"设定种子"——所有类、方法或变量在 REPL 上下文中都可用。这是通过运行带有"-i"标志的脚本来实现的。
 
-For example, given the following CSX script:
+距离来说，对于下面的脚本:
 
 ```csharp
 var msg = "Hello World";
 Console.WriteLine(msg);
 ```
 
-When you run this with the `-i` flag, `Hello World` is printed, REPL starts and `msg` variable is available in the REPL context.
+当您使用"-i"标志运行此命令时，将打印"Hello World"，REPL启动，并且 "msg" 变量在REPL上下文中可用。
 
 ```
-~$ dotnet script foo.csx -i
+~$ nscript foo.csx -i
 Hello World
 >
 ```
 
-You can also seed the REPL from inside the REPL - at any point - by invoking a `#load` directive pointed at a specific file. For example:
+您还可以通过调用指向特定文件的"#load"指令，在 REPL 中加载脚本文件。例如：
 
 ```
 ~$ dotnet script
@@ -459,30 +341,29 @@ Hello World
 >
 ```
 
-## Piping
+## 管线
 
-The following example shows how we can pipe data in and out of a script.
+下面的示例演示如何通过管道传入和传出脚本的数据。
 
-The `UpperCase.csx` script simply converts the standard input to upper case and writes it back out to standard output.
+"UpperCase.csx"脚本只是将标准输入转换为大写，然后将其写回标准输出。
 
 ```csharp
-#! "netcoreapp2.1"
 using (var streamReader = new StreamReader(Console.OpenStandardInput()))
 {
     Write(streamReader.ReadToEnd().ToUpper());
 }
 ```
 
-We can now simply pipe the output from one command into our script like this.
+现在，我们可以像这样简单地将一个命令的输出通过管道传输到脚本中。
 
 ```shell
-echo "This is some text" | dotnet script UpperCase.csx
+echo "This is some text" | ncript UpperCase.csx
 THIS IS SOME TEXT
 ```
 
-### Debugging
+### 调试
 
-The first thing we need to do add the following to the `launch.config` file that allows VS Code to debug a running process.
+我们需要做的第一件事是将以下内容添加到`launch.config`文件中，该文件允许VS Code调试正在运行的进程。
 
 ```JSON
 {
@@ -493,7 +374,7 @@ The first thing we need to do add the following to the `launch.config` file that
 }
 ```
 
-To debug this script we need a way to attach the debugger in VS Code and the simplest thing we can do here is to wait for the debugger to attach by adding this method somewhere.
+若要调试此脚本，我们需要一种方法在 VS Code 中附加调试器，而我们在这里可以做的最简单的事情就是通过在某个位置添加此方法来等待调试器附加。
 
 ```c#
 public static void WaitForDebugger()
@@ -505,7 +386,7 @@ public static void WaitForDebugger()
 }
 ```
 
-To debug the script when executing it from the command line we can do something like
+要在从命令行执行脚本时调试脚本，我们可以执行类似操作。
 
 ```c#
 WaitForDebugger();
@@ -515,61 +396,85 @@ using (var streamReader = new StreamReader(Console.OpenStandardInput()))
 }
 ```
 
-Now when we run the script from the command line we will get
+现在，当我们从命令行运行脚本时，我们将得到
 
 ```shell
 $ echo "This is some text" | dotnet script UpperCase.csx
 Attach Debugger (VS Code)
 ```
 
-This now gives us a chance to attach the debugger before stepping into the script and from VS Code, select the `.NET Core Attach` debugger and pick the process that represents the executing script.
+现在，这使我们有机会在单步执行脚本之前附加调试器，并从 VS Code 中选择".NET Core Attach"调试器，然后选择表示正在执行脚本的进程。
 
-Once that is done we should see our breakpoint being hit.
+一旦完成，我们应该看到我们的断点被击中。
 
-## Configuration(Debug/Release)
+## 配置(Debug/Release)
 
-By default, scripts will be compiled using the `debug` configuration. This is to ensure that we can debug a script in VS Code as well as attaching a debugger for long running scripts.
+默认情况下，将使用"Debug"配置编译脚本。这是为了确保我们可以在 VS Code 中调试脚本，并为长时间运行的脚本附加调试器。
 
-There are however situations where we might need to execute a script that is compiled with the `release` configuration. For instance, running benchmarks using [BenchmarkDotNet](http://benchmarkdotnet.org/) is not possible unless the script is compiled with the `release` configuration.
+但是，在某些情况下，我们可能需要执行使用"release"配置编译的脚本。例如，除非使用"release"配置编译脚本，否则无法使用 [BenchmarkDotNet]（http://benchmarkdotnet.org/） 运行基准测试。
 
-We can specify this when executing the script.
+我们可以在执行脚本时指定配置。
 
 ```shell
 dotnet script foo.csx -c release
 ```
 
-##
+## nullable
 
-## Nullable reference types
-
-Starting from version 0.50.0, `dotnet-script` supports .Net Core 3.0 and all the C# 8 features.
-The way we deal with [nullable references types](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references) in `dotnet-script` is that we turn every warning related to nullable reference types into compiler errors. This means every warning between `CS8600` and `CS8655` are treated as an error when compiling the script.
-
-Nullable references types are turned off by default and the way we enable it is using the `#nullable enable` compiler directive. This means that existing scripts will continue to work, but we can now opt-in on this new feature.
+可以通过预编译指令开启 nullable.
 
 ```csharp
-#!/usr/bin/env dotnet-script
+#!/usr/bin/env nscript
 
 #nullable enable
 
 string name = null;
 ```
 
-Trying to execute the script will result in the following error
+尝试执行脚本将导致以下错误
 
 ```shell
 main.csx(5,15): error CS8625: Cannot convert null literal to non-nullable reference type.
 ```
 
-We will also see this when working with scripts in VS Code under the problems panel.
+在 VS Code 中也会直接看到错误提示。
 
 ![image](https://user-images.githubusercontent.com/1034073/65727087-0e982600-e0b7-11e9-8fa0-d16331ab948a.png)
 
-## Team
+## 食用佐料
+
+NScript 的宗旨是轻量，简单，追求极致的生产力。推荐搭配下面类库使用：
+
+- [EmbedIO](https://github.com/unosquare/embedio) , A tiny, cross-platform, module based web server for .NET
+- [LiteDB](https://github.com/mbdavid/LiteDB), A .NET NoSQL Document Store in a single data file 
+- [Requests.NET](https://github.com/KrystianD/Requests.NET), Fluent C# HTTP client with python-requests like interface
+- [Modern.Forms](https://github.com/modern-forms/Modern.Forms), Cross-platform spiritual successor to Winforms for .NET 6
+
+NScript 的目标是高性能计算，常见的类库有：
+
+- [opencvsharp](https://github.com/shimat/opencvsharp), OpenCV wrapper for .NET
+- [FFmpeg.AutoGen](https://github.com/Ruslan-B/FFmpeg.AutoGen), FFmpeg auto generated unsafe bindings for C#/.NET and Core (Linux, MacOS and Mono).
+- [TorchSharp](https://github.com/dotnet/TorchSharp),.NET bindings for the Pytorch engine
+- [PaddleSharp](https://github.com/sdcb/PaddleSharp), .NET/C# binding for Baidu paddle inference library and PaddleOCR
+
+进一步的资源：
+
+- [NativeAOT](https://github.com/dotnet/runtimelab/tree/feature/NativeAOT), 后续 nscript 会加强对 NativeAOT 的支持;
+- [zerosharp](https://github.com/MichalStrehovsky/zerosharp), 这是个非常棒的项目，演示了采用 C# 进行系统开发的可能性，移除GC后，您甚至可以写出 8k 大小的可执行程序。
+
+后续加强对 AOT 和系统编程的支持，目标是为了方便云原生开发，使 nscript 成为优秀的云原生开发语言。
+
+## 团队
+
+`nscript` 的团队:
+
+- [nscript](https://github.com/nscript-site/nscript)
+
+`nscript`  源自 `dotnet script` ，下面是 `dotnet script` 的团队:
 
 - [Bernhard Richter](https://github.com/seesharper) ([@bernhardrichter](https://twitter.com/bernhardrichter))
 - [Filip W](https://github.com/filipw) ([@filip_woj](https://twitter.com/filip_woj))
 
 ## License
 
-[MIT License](https://github.com/filipw/dotnet-script/blob/master/LICENSE)
+[MIT License](https://github.com/nscript-site/nscript/blob/master/LICENSE)

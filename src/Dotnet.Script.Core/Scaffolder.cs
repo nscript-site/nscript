@@ -16,10 +16,6 @@ namespace Dotnet.Script.Core
     {
         private readonly ScriptEnvironment _scriptEnvironment;
         private const string DefaultScriptFileName = "main.csx";
-        private const string DefaultAspnetScriptFileName = "httpserver.csx";
-        private const string DefaultImportAspnetScriptFileName = "aspnet.csx";
-        private const string DefaultImportWinuiScriptFileName = "winui.csx";
-        private const string DefaultImportDirName = "base";
         private readonly ScriptConsole _scriptConsole;
         private readonly CommandRunner _commandRunner;
 
@@ -39,9 +35,6 @@ namespace Dotnet.Script.Core
             CreateLaunchConfiguration(currentWorkingDirectory);
             CreateOmniSharpConfigurationFile(currentWorkingDirectory);
             CreateScriptFile(fileName, currentWorkingDirectory);
-            CreateDefaultAspnetScriptFile(currentWorkingDirectory);
-            CreateImportScriptFile(currentWorkingDirectory, "aspnet.csx", () => CreateImportFile("Microsoft.AspNetCore.App"));
-            CreateImportScriptFile(currentWorkingDirectory, "winui.csx", () => CreateImportFile("Microsoft.WindowsDesktop.App"));
         }
 
         public void CreateNewScriptFileFromTemplate(string fileName, string currentDirectory, string templateName)
@@ -104,66 +97,6 @@ namespace Dotnet.Script.Core
             {
                 CreateNewScriptFileFromTemplate(fileName, currentWorkingDirectory, "helloworld.csx.template");
             }
-        }
-
-        private void CreateDefaultAspnetScriptFile(string currentWorkingDirectory)
-        {
-            _scriptConsole.Out.WriteLine($"Creating default aspnet script file '{DefaultAspnetScriptFileName}'");
-            if (Directory.GetFiles(currentWorkingDirectory, DefaultAspnetScriptFileName).Any())
-            {
-                _scriptConsole.WriteHighlighted("...Folder already contains one or more aspnet script files [Skipping]");
-            }
-            else
-            {
-                CreateNewScriptFileFromTemplate(DefaultAspnetScriptFileName, currentWorkingDirectory, "aspnet.csx.template");
-            }
-        }
-
-        private void CreateImportScriptFile(string currentWorkingDirectory, string filename, Func<String> generator)
-        {
-            _scriptConsole.Out.WriteLine($"Creating import script file '{filename}'");
-            DirectoryInfo dirInfo = new DirectoryInfo(Path.Combine(currentWorkingDirectory, DefaultImportDirName));
-            if (dirInfo.Exists == false) dirInfo.Create();
-
-            if (Directory.GetFiles(dirInfo.FullName, filename).Any())
-            {
-                _scriptConsole.WriteHighlighted($"...Folder already contains {filename} [Skipping]");
-            }
-            else
-            {
-                String pathToScriptFile = Path.Combine(dirInfo.FullName, filename);
-                String content = generator();
-                File.WriteAllText(pathToScriptFile, content);
-                _scriptConsole.WriteSuccess($"...'{pathToScriptFile}' [Created]");
-            }
-        }
-
-        private static bool IsAssembly(string file)
-        {
-            // https://docs.microsoft.com/en-us/dotnet/standard/assembly/identify
-            try
-            {
-                System.Reflection.AssemblyName.GetAssemblyName(file);
-                return true;
-            }
-            catch (System.Exception)
-            {
-                return false;
-            }
-        }
-
-        private String CreateImportFile(String sdkName)
-        {
-            StringBuilder sb = new StringBuilder();
-            var netcoreAppRuntimeAssemblyLocation = Path.GetDirectoryName(typeof(object).Assembly.Location);
-            netcoreAppRuntimeAssemblyLocation = netcoreAppRuntimeAssemblyLocation.Replace("Microsoft.NETCore.App", sdkName);
-            var netcoreAppRuntimeAssemblies = Directory.GetFiles(netcoreAppRuntimeAssemblyLocation, "*.dll").Where(IsAssembly).ToArray();
-            foreach (String item in netcoreAppRuntimeAssemblies)
-            {
-                String fullPath = item.Replace("\\", "/");
-                sb.AppendLine($"#r \"{fullPath}\"");
-            }
-            return sb.ToString();
         }
 
         private void CreateDefaultScriptFile(string currentWorkingDirectory)

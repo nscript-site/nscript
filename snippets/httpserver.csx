@@ -1,4 +1,4 @@
-﻿#load "aspnet.csx"
+#load "base/aspnet.csx"
 
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;

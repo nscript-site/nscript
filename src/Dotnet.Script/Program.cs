@@ -55,7 +55,7 @@ namespace Dotnet.Script
 
         private static int Wain(string[] args)
         {
-            var app = new CommandLineApplication(throwOnUnexpectedArg: false)
+            var app = new CommandLineApplication()
             {
                 ExtendedHelpText = "Starting without a path to a CSX file or a command, starts the REPL (interactive) mode."
             };
@@ -82,7 +82,8 @@ namespace Dotnet.Script
                 var code = c.Argument("code", "Code to execute.");
                 var cwd = c.Option("-cwd |--workingdirectory <currentworkingdirectory>", "Working directory for the code compiler. Defaults to current directory.", CommandOptionType.SingleValue);
                 c.HelpOption(helpOptionTemplate);
-                c.OnExecute(async () =>
+               
+                c.OnExecuteAsync(async (_) =>
                 {
                     var source = code.Value;
                     if (string.IsNullOrWhiteSpace(source))
@@ -114,6 +115,19 @@ namespace Dotnet.Script
                 {
                     var logFactory = CreateLogFactory(verbosity.Value(), debugMode.HasValue());
                     new InitCommand(logFactory).Execute(new InitCommandOptions(fileName.Value, cwd.Value()));
+                    return 0;
+                });
+            });
+
+            app.Command("snippets", c =>
+            {
+                c.Description = "Creates some snippets.";
+                var cwd = c.Option("-cwd |--workingdirectory <currentworkingdirectory>", "Working directory for initialization. Defaults to current directory.", CommandOptionType.SingleValue);
+                c.HelpOption(helpOptionTemplate);
+                c.OnExecute(() =>
+                {
+                    var logFactory = CreateLogFactory(verbosity.Value(), debugMode.HasValue());
+                    new SinppetsCommand(logFactory).Execute(new InitCommandOptions(String.Empty, cwd.Value()));
                     return 0;
                 });
             });
@@ -197,7 +211,7 @@ namespace Dotnet.Script
                 var dllPath = c.Argument("dll", "Path to DLL based script");
                 var commandDebugMode = c.Option(DebugFlagShort + " | " + DebugFlagLong, "Enables debug output.", CommandOptionType.NoValue);
                 c.HelpOption(helpOptionTemplate);
-                c.OnExecute(async () =>
+                c.OnExecuteAsync(async (_) =>
                 {
                     if (string.IsNullOrWhiteSpace(dllPath.Value))
                     {
@@ -215,8 +229,7 @@ namespace Dotnet.Script
                     return await new ExecuteLibraryCommand(ScriptConsole.Default, logFactory).Execute<int>(options);
                 });
             });
-
-            app.OnExecute(async () =>
+            app.OnExecuteAsync(async (_) =>
             {
                 int exitCode = 0;
 
