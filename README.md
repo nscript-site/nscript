@@ -263,7 +263,7 @@ nscript --no-cache a.csx
 还可以执行在 `http(s)`上的脚本。
 
 ```shell
-dotnet script https://tinyurl.com/y8cda9zt
+nscript https://tinyurl.com/y8cda9zt
 ```
 
 ### 脚本位置
@@ -513,3 +513,7 @@ NScript 的目标是高性能计算，常见的类库有：
 ## License
 
 [MIT License](https://github.com/nscript-site/nscript/blob/master/LICENSE)
+
+## 说明
+
+本文档中部分内容修改自 `dotnet-script`，特此说明。
