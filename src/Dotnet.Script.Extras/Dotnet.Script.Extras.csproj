@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Extensions and add ons to C# scripting</Description>
     <VersionPrefix>0.2.0</VersionPrefix>
-    <TargetFrameworks>net5.0</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>Dotnet.Script.Extras</AssemblyName>
     <PackageId>Dotnet.Script.Extras</PackageId>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.9.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.0.0-6.final" />
     <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
   </ItemGroup>
 

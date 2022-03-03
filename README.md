@@ -30,6 +30,8 @@ nscript 的定位：
 
 - nscript 是面向 3D 和元宇宙的语言，使用它，可以非常容易的创建3D内容和应用。
 
+nscript 也是一个很好的教学工具。
+
 ## 安装
 
 需要先下载安装 [.NET 6.0+ SDK](https://www.microsoft.com/net/download/core). 对于低于 6.0 的版本，也许可以用，也许不可以用, 不再进行测试和兼容。

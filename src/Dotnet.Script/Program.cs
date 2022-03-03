@@ -11,6 +11,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 
 namespace Dotnet.Script
@@ -22,7 +23,6 @@ namespace Dotnet.Script
 
         public static int Main(string[] args)
         {
-            //args = new string[] { "-d", @"D:\Projects\01_Public_Geb.Image\ImageProjects\video.csx" };
             try
             {
                 return Wain(args);
@@ -57,6 +57,7 @@ namespace Dotnet.Script
         {
             var app = new CommandLineApplication()
             {
+                UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue,
                 ExtendedHelpText = "Starting without a path to a CSX file or a command, starts the REPL (interactive) mode."
             };
 
@@ -67,10 +68,11 @@ namespace Dotnet.Script
             var debugMode = app.Option(DebugFlagShort + " | " + DebugFlagLong, "Enables debug output.", CommandOptionType.NoValue);
             var verbosity = app.Option("--verbosity", " Set the verbosity level of the command. Allowed values are t[trace], d[ebug], i[nfo], w[arning], e[rror], and c[ritical].", CommandOptionType.SingleValue);
             var nocache = app.Option("--no-cache", "Disable caching (Restore and Dll cache)", CommandOptionType.NoValue);
+            var isolatedLoadContext = app.Option("--isolated-load-context", "Use isolated assembly load context", CommandOptionType.NoValue);
             var infoOption = app.Option("--info", "Displays environmental information", CommandOptionType.NoValue);
 
             var argsBeforeDoubleHyphen = args.TakeWhile(a => a != "--").ToArray();
-            var argsAfterDoubleHyphen  = args.SkipWhile(a => a != "--").Skip(1).ToArray();
+            var argsAfterDoubleHyphen = args.SkipWhile(a => a != "--").Skip(1).ToArray();
 
             const string helpOptionTemplate = "-? | -h | --help";
             app.HelpOption(helpOptionTemplate);
@@ -82,8 +84,7 @@ namespace Dotnet.Script
                 var code = c.Argument("code", "Code to execute.");
                 var cwd = c.Option("-cwd |--workingdirectory <currentworkingdirectory>", "Working directory for the code compiler. Defaults to current directory.", CommandOptionType.SingleValue);
                 c.HelpOption(helpOptionTemplate);
-               
-                c.OnExecuteAsync(async (_) =>
+                c.OnExecuteAsync(async (cancellationToken) =>
                 {
                     var source = code.Value;
                     if (string.IsNullOrWhiteSpace(source))
@@ -100,7 +101,7 @@ namespace Dotnet.Script
                     }
 
                     var logFactory = CreateLogFactory(verbosity.Value(), debugMode.HasValue());
-                    var options = new ExecuteCodeCommandOptions(source, cwd.Value(), app.RemainingArguments.Concat(argsAfterDoubleHyphen).ToArray(),configuration.ValueEquals("release", StringComparison.OrdinalIgnoreCase) ? OptimizationLevel.Release : OptimizationLevel.Debug, nocache.HasValue(),packageSources.Values?.ToArray());
+                    var options = new ExecuteCodeCommandOptions(source, cwd.Value(), app.RemainingArguments.Concat(argsAfterDoubleHyphen).ToArray(), configuration.ValueEquals("release", StringComparison.OrdinalIgnoreCase) ? OptimizationLevel.Release : OptimizationLevel.Debug, nocache.HasValue(), packageSources.Values?.ToArray());
                     return await new ExecuteCodeCommand(ScriptConsole.Default, logFactory).Execute<int>(options);
                 });
             });
@@ -115,19 +116,6 @@ namespace Dotnet.Script
                 {
                     var logFactory = CreateLogFactory(verbosity.Value(), debugMode.HasValue());
                     new InitCommand(logFactory).Execute(new InitCommandOptions(fileName.Value, cwd.Value()));
-                    return 0;
-                });
-            });
-
-            app.Command("snippets", c =>
-            {
-                c.Description = "Creates some snippets.";
-                var cwd = c.Option("-cwd |--workingdirectory <currentworkingdirectory>", "Working directory for initialization. Defaults to current directory.", CommandOptionType.SingleValue);
-                c.HelpOption(helpOptionTemplate);
-                c.OnExecute(() =>
-                {
-                    var logFactory = CreateLogFactory(verbosity.Value(), debugMode.HasValue());
-                    new SinppetsCommand(logFactory).Execute(new InitCommandOptions(String.Empty, cwd.Value()));
                     return 0;
                 });
             });
@@ -147,8 +135,21 @@ namespace Dotnet.Script
                         c.ShowHelp();
                         return 0;
                     }
-                    scaffolder.CreateNewScriptFileFromTemplate(fileNameArgument.Value, cwd.Value() ?? Directory.GetCurrentDirectory(), "helloworld.csx.template");
+                    scaffolder.CreateNewScriptFile(fileNameArgument.Value, cwd.Value() ?? Directory.GetCurrentDirectory());
                     return 0;
+                });
+            });
+
+            app.Command("snippets", c =>
+            {
+                c.Description = "Creates some snippets.";
+                var cwd = c.Option("-cwd |--workingdirectory <currentworkingdirectory>", "Working directory for initialization. Defaults to current directory.", CommandOptionType.SingleValue);
+                c.HelpOption(helpOptionTemplate);
+                c.OnExecute(() =>
+                {
+                    var logFactory = CreateLogFactory(verbosity.Value(), debugMode.HasValue());
+                    new SinppetsCommand(logFactory).Execute(new InitCommandOptions(String.Empty, cwd.Value()));
+                                        return 0;
                 });
             });
 
@@ -211,7 +212,7 @@ namespace Dotnet.Script
                 var dllPath = c.Argument("dll", "Path to DLL based script");
                 var commandDebugMode = c.Option(DebugFlagShort + " | " + DebugFlagLong, "Enables debug output.", CommandOptionType.NoValue);
                 c.HelpOption(helpOptionTemplate);
-                c.OnExecuteAsync(async (_) =>
+                c.OnExecuteAsync(async (cancellationToken) =>
                 {
                     if (string.IsNullOrWhiteSpace(dllPath.Value))
                     {
@@ -229,7 +230,8 @@ namespace Dotnet.Script
                     return await new ExecuteLibraryCommand(ScriptConsole.Default, logFactory).Execute<int>(options);
                 });
             });
-            app.OnExecuteAsync(async (_) =>
+
+            app.OnExecuteAsync(async (cancellationToken) =>
             {
                 int exitCode = 0;
 
@@ -244,11 +246,15 @@ namespace Dotnet.Script
                     return 0;
                 }
 
+                AssemblyLoadContext assemblyLoadContext = null;
+                if (isolatedLoadContext.HasValue())
+                    assemblyLoadContext = new ScriptAssemblyLoadContext();
+
                 if (scriptFile.HasValue)
                 {
                     if (interactive.HasValue())
                     {
-                        return await RunInteractiveWithSeed(file.Value, logFactory, scriptArguments, packageSources.Values?.ToArray());
+                        return await RunInteractiveWithSeed(file.Value, logFactory, scriptArguments, packageSources.Values?.ToArray(), assemblyLoadContext);
                     }
 
                     var fileCommandOptions = new ExecuteScriptCommandOptions
@@ -259,14 +265,17 @@ namespace Dotnet.Script
                         packageSources.Values?.ToArray(),
                         interactive.HasValue(),
                         nocache.HasValue()
-                    );
+                    )
+                    {
+                        AssemblyLoadContext = assemblyLoadContext
+                    };
 
                     var fileCommand = new ExecuteScriptCommand(ScriptConsole.Default, logFactory);
                     return await fileCommand.Run<int, CommandLineScriptGlobals>(fileCommandOptions);
-            }
+                }
                 else
                 {
-                    await RunInteractive(!nocache.HasValue(), logFactory, packageSources.Values?.ToArray());
+                    await RunInteractive(!nocache.HasValue(), logFactory, packageSources.Values?.ToArray(), assemblyLoadContext);
                 }
                 return exitCode;
             });
@@ -274,16 +283,22 @@ namespace Dotnet.Script
             return app.Execute(argsBeforeDoubleHyphen);
         }
 
-        private static async Task<int> RunInteractive(bool useRestoreCache, LogFactory logFactory, string[] packageSources)
+        private static async Task<int> RunInteractive(bool useRestoreCache, LogFactory logFactory, string[] packageSources, AssemblyLoadContext assemblyLoadContext)
         {
-            var options = new ExecuteInteractiveCommandOptions(null, Array.Empty<string>(), packageSources);
+            var options = new ExecuteInteractiveCommandOptions(null, Array.Empty<string>(), packageSources)
+            {
+                AssemblyLoadContext = assemblyLoadContext
+            };
             await new ExecuteInteractiveCommand(ScriptConsole.Default, logFactory).Execute(options);
             return 0;
         }
 
-        private async static Task<int> RunInteractiveWithSeed(string file, LogFactory logFactory, string[] arguments, string[] packageSources)
+        private async static Task<int> RunInteractiveWithSeed(string file, LogFactory logFactory, string[] arguments, string[] packageSources, AssemblyLoadContext assemblyLoadContext)
         {
-            var options = new ExecuteInteractiveCommandOptions(new ScriptFile(file), arguments, packageSources);
+            var options = new ExecuteInteractiveCommandOptions(new ScriptFile(file), arguments, packageSources)
+            {
+                AssemblyLoadContext = assemblyLoadContext
+            };
             await new ExecuteInteractiveCommand(ScriptConsole.Default, logFactory).Execute(options);
             return 0;
         }

@@ -64,7 +64,6 @@ namespace Dotnet.Script.DependencyModel.ProjectSystem
         public void Save(string pathToProjectFile)
         {
             var projectFileDocument = XDocument.Parse(ReadTemplate("csproj.template"));
-            //var projectFileDocument = XDocument.Parse(ReadTemplate("csproj-winui.template"));
             var itemGroupElement = projectFileDocument.Descendants("ItemGroup").Single();
             foreach (var packageReference in PackageReferences)
             {

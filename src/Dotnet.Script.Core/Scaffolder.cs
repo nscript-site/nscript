@@ -37,7 +37,7 @@ namespace Dotnet.Script.Core
             CreateScriptFile(fileName, currentWorkingDirectory);
         }
 
-        public void CreateNewScriptFileFromTemplate(string fileName, string currentDirectory, string templateName)
+        public void CreateNewScriptFile(string fileName, string currentDirectory)
         {
             _scriptConsole.WriteNormal($"Creating '{fileName}'");
             if (!Path.HasExtension(fileName))
@@ -47,14 +47,14 @@ namespace Dotnet.Script.Core
             var pathToScriptFile = Path.Combine(currentDirectory, fileName);
             if (!File.Exists(pathToScriptFile))
             {
-                var scriptFileTemplate = TemplateLoader.ReadTemplate(templateName);
+                var scriptFileTemplate = TemplateLoader.ReadTemplate("helloworld.csx.template");
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ||
                     RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     // add a shebang to set dotnet-script as the interpreter for .csx files
                     // and make sure we are using environment newlines, because shebang won't work with windows cr\lf
-                    scriptFileTemplate = $"#!/usr/bin/env nscript" + Environment.NewLine + scriptFileTemplate.Replace("\r\n", Environment.NewLine);
+                    scriptFileTemplate = $"#!/usr/bin/env dotnet-script" + Environment.NewLine + scriptFileTemplate.Replace("\r\n", Environment.NewLine);
                 }
 
                 File.WriteAllText(pathToScriptFile, scriptFileTemplate, new UTF8Encoding(false /* Linux shebang can't handle BOM */));
@@ -95,7 +95,7 @@ namespace Dotnet.Script.Core
             }
             else
             {
-                CreateNewScriptFileFromTemplate(fileName, currentWorkingDirectory, "helloworld.csx.template");
+                CreateNewScriptFile(fileName, currentWorkingDirectory);
             }
         }
 
@@ -108,7 +108,7 @@ namespace Dotnet.Script.Core
             }
             else
             {
-                CreateNewScriptFileFromTemplate(DefaultScriptFileName, currentWorkingDirectory, "helloworld.csx.template");
+                CreateNewScriptFile(DefaultScriptFileName, currentWorkingDirectory);
             }
         }
 
@@ -180,7 +180,7 @@ namespace Dotnet.Script.Core
                         var newLaunchFileContent = Regex.Replace(launchFileContent, pattern, $"$1{dotnetScriptPath}$3", RegexOptions.Multiline);
                         if (launchFileContent != newLaunchFileContent)
                         {
-                            _scriptConsole.WriteHighlighted($"...Fixed path to nscript: '{dotnetScriptPath}' [Updated]");
+                            _scriptConsole.WriteHighlighted($"...Fixed path to dotnet-script: '{dotnetScriptPath}' [Updated]");
                             File.WriteAllText(pathToLaunchFile, newLaunchFileContent);
                         }
                     }
