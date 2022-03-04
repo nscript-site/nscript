@@ -39,7 +39,6 @@ namespace Dotnet.Script.DependencyModel.NuGet
             return _metadataReferenceResolver.ResolveMissingAssembly(definition, referenceIdentity);
         }
 
-
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
         {
             if (reference.StartsWith("nuget", StringComparison.OrdinalIgnoreCase))

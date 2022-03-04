@@ -24,6 +24,21 @@ namespace Dotnet.Script.Core
 
         public bool EnableAot = false;
 
+        /// <summary>
+        /// 引用的 nuget 包
+        /// </summary>
+        protected List<NugetRef> RefPackages { get; set; } = new List<NugetRef>();
+
+        /// <summary>
+        /// 引用的脚本
+        /// </summary>
+        protected List<String> RefDlls { get; set; } = new List<string>();
+
+        /// <summary>
+        /// 已经处理的脚本路径列表
+        /// </summary>
+        protected List<String> ScriptsHandled { get; set; } = new List<string>();
+
         public ScriptPacker(ScriptProjectProvider scriptProjectProvider, ScriptConsole scriptConsole)
         {
             PacketClassName = "PacketClass" + DateTime.Now.ToFileTimeUtc().ToString();
@@ -53,7 +68,21 @@ namespace Dotnet.Script.Core
         private String GetNugetReference()
         {
             // 将 nuget 转换成包引用，例如： <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-            return String.Empty;
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var item in RefPackages)
+            {
+                if(String.IsNullOrEmpty(item.Version))
+                {
+                    sb.AppendLine("<PackageReference Include=\"" + item.Name + "\" />");
+                }
+                else
+                {
+                    sb.AppendLine("<PackageReference Include=\"" + item.Name + "\" Version=\""+ item.Version +"\" />");
+                }
+            }
+
+            return sb.ToString();
         }
 
         private String GetDllReference()
@@ -62,7 +91,17 @@ namespace Dotnet.Script.Core
             //<Reference Include="Geb.Media.IO">
             //  <HintPath>..\..\..\Projects\21_Private_NScript\app\lib\Geb.Media.IO.dll</HintPath>
             //</Reference>
-            return String.Empty;
+
+            StringBuilder sb = new StringBuilder();
+            foreach(var item in RefDlls)
+            {
+                FileInfo fileInfo = new FileInfo(item);
+                sb.AppendLine("<Reference Include=\"" + fileInfo.Name + "\">");
+                sb.AppendLine("<HintPath>" + fileInfo.FullName + "</HintPath>");
+                sb.AppendLine("</Reference>");
+            }
+
+            return sb.ToString();
         }
 
         protected virtual IEnumerable<string> ImportedNamespaces => new[]
@@ -86,7 +125,7 @@ namespace Dotnet.Script.Core
                 return "dotnet publish -c release -r @@RID -o ./out".Replace("@@RID", rid);
         }
 
-        public String GenerateCode(String csxFilePath)
+        public String GenerateCode(String csxFilePath, List<String> headers = null)
         {
             String[] lines = File.ReadAllLines(csxFilePath);
             List<String> sbUsing = new ();
@@ -192,6 +231,8 @@ namespace Dotnet.Script.Core
 
             sbOut.AppendLine("}");
 
+            headers?.AddRange(sbHeader);
+
             return sbOut.ToString();
         }
 
@@ -206,19 +247,60 @@ namespace Dotnet.Script.Core
                 item.Delete();
         }
 
+        protected void GenerateSourceCode(FileInfo fileInfo, DirectoryInfo dirOutInfo)
+        {
+            if(this.ScriptsHandled.Contains(fileInfo.FullName))
+            {
+                // 已经处理过，忽略
+                return;
+            }
+
+            if(fileInfo.Exists == false)
+            {
+                Console.WriteLine("File not exist: " + fileInfo.FullName);
+                return;
+            }
+
+            // 解析出来的头部放在这里面
+            List<String> headers = new List<string>();
+
+            String outFileName = GetSourceFileName(fileInfo.FullName);
+            String content = GenerateCode(fileInfo.FullName, headers);
+            String outFilePath = Path.Combine(dirOutInfo.FullName, outFileName);
+            File.WriteAllText(outFilePath, content);
+            Console.WriteLine($"Generate code of {fileInfo} to file: {outFileName} ");
+            this.ScriptsHandled.Add(fileInfo.FullName);
+
+            foreach(var h in headers)
+            {
+                ReferenceResource r = new ReferenceResource(h, fileInfo.DirectoryName);
+                if (r.Mode == ReferenceResource.RefMode.None) continue;
+                else if(r.Mode == ReferenceResource.RefMode.Dll)
+                {
+                    if (RefDlls.Contains(r.Value) == false) RefDlls.Add(r.Value);
+                }
+                else if(r.Mode == ReferenceResource.RefMode.Package)
+                {
+                    NugetRef nr = new NugetRef { Name = r.Value, Version = r.Version };
+                    if (RefPackages.Contains(nr) == false) RefPackages.Add(nr);
+                }
+                else if(r.Mode == ReferenceResource.RefMode.Code)
+                {
+                    FileInfo newFileInfo = new FileInfo(r.Value);
+                    GenerateSourceCode(newFileInfo, newFileInfo.Directory);
+                }
+            }
+        }
+
         public void GenerateProject(String csxFilePath, String dirOut)
         {
             DirectoryInfo dirOutInfo = new DirectoryInfo(dirOut);
             if (dirOutInfo.Exists == false) dirOutInfo.Create();
 
-            ClearGenerateFiles(dirOutInfo);
-
             FileInfo file = new FileInfo(csxFilePath);
-            String outFileName = GetSourceFileName(file.FullName);
-            String content = GenerateCode(csxFilePath);
-            String outFilePath = Path.Combine(dirOutInfo.FullName, outFileName);
-            File.WriteAllText(outFilePath, content);
-            Console.WriteLine($"Generate code of {csxFilePath} to file: {outFileName} ");
+
+            ClearGenerateFiles(dirOutInfo);
+            GenerateSourceCode(file, dirOutInfo);
 
             if (EnableAot == true)
             {
