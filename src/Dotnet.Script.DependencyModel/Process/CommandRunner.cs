@@ -17,11 +17,16 @@ namespace Dotnet.Script.DependencyModel.Process
 
         public int Execute(string commandPath, string arguments = null, string workingDirectory = null)
         {
+            Console.WriteLine($"Executing '{commandPath} {arguments}'");
             _logger.Debug($"Executing '{commandPath} {arguments}'");
-            var startInformation = CreateProcessStartInfo(commandPath, arguments, workingDirectory);
-            var process = CreateProcess(startInformation);
-            RunAndWait(process);
-            return process.ExitCode;
+            //var startInformation = CreateProcessStartInfo(commandPath, arguments, workingDirectory);
+            //var process = CreateProcess(startInformation);
+            //RunAndWait(process);
+
+            var commandResult = this.Capture(commandPath, arguments, workingDirectory);
+            Console.WriteLine(commandResult.StandardError);
+            return commandResult.ExitCode;
+            //return process.ExitCode;
         }
 
         public CommandResult Capture(string commandPath, string arguments, string workingDirectory = null)

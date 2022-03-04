@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<AssemblyName>ASSEMBLY_NAME</AssemblyName>
+		<TargetFramework>net6.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<BaseOutputPath>PATH_BASE_OUTPUT</BaseOutputPath>
+		<BaseIntermediateOutputPath>PATH_OBJ_OUTPUT</BaseIntermediateOutputPath>
+		<IlcOptimizationPreference>Speed</IlcOptimizationPreference>
+		<IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
+		<IlcDisableReflection>true</IlcDisableReflection>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<DebuggerSupport>false</DebuggerSupport>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.DotNet.ILCompiler" Version="6.0.0-*" />
+		PACKAGE_REFERENCE
+	</ItemGroup>
+	<ItemGroup>
+		DLL_REFERENCE
+	</ItemGroup>
+</Project>

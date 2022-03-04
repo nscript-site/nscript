@@ -24,6 +24,11 @@
     <EmbeddedResource Include="**/*.template" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Templates\aot.nuget.template" />
+    <None Remove="Templates\pack.aot.csproj.template" />
+    <None Remove="Templates\pack.csproj.template" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Gapotchenko.FX" Version="2021.1.5" />
     <PackageReference Include="Gapotchenko.FX.Reflection.Loader" Version="2021.2.11" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.1.0" />

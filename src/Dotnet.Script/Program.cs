@@ -206,6 +206,44 @@ namespace Dotnet.Script
                 });
             });
 
+            app.Command("pack", c =>
+            {
+                c.Description = "publich executable or DLL from a script";
+                var fileNameArgument = c.Argument("filename", "The script file name");
+                var publishDirectoryOption = c.Option("-o |--output", "Directory where the published executable should be placed.  Defaults to a 'publish' folder in the current directory.", CommandOptionType.SingleValue);
+                var dllName = c.Option("-n |--name", "The name for the generated DLL (executable not supported at this time).  Defaults to the name of the script.", CommandOptionType.SingleValue);
+                var dllOption = c.Option("--dll", "Publish to a .dll instead of an executable.", CommandOptionType.NoValue);
+                var aotOption = c.Option("--aot", "Compiling with Native AOT.", CommandOptionType.NoValue);
+                var commandConfig = c.Option("-c | --configuration <configuration>", "Configuration to use for publishing the script [Release/Debug]. Default is \"Debug\"", CommandOptionType.SingleValue);
+                var runtime = c.Option("-r |--runtime", "The runtime used when publishing the self contained executable. Defaults to your current runtime.", CommandOptionType.SingleValue);
+                c.HelpOption(helpOptionTemplate);
+                c.OnExecute(() =>
+                {
+                    if (fileNameArgument.Value == null)
+                    {
+                        c.ShowHelp();
+                        return 0;
+                    }
+
+                    var options = new PackCommandOptions
+                    (
+                        new ScriptFile(fileNameArgument.Value),
+                        publishDirectoryOption.Value(),
+                        dllName.Value(),
+                        dllOption.HasValue() ? PublishType.Library : PublishType.Executable,
+                        commandConfig.ValueEquals("release", StringComparison.OrdinalIgnoreCase) ? OptimizationLevel.Release : OptimizationLevel.Debug,
+                        packageSources.Values?.ToArray(),
+                        runtime.Value() ?? ScriptEnvironment.Default.RuntimeIdentifier,
+                        nocache.HasValue(),
+                        aotOption.HasValue()
+                    );
+
+                    var logFactory = CreateLogFactory(verbosity.Value(), debugMode.HasValue());
+                    new PackCommand(ScriptConsole.Default, logFactory).Execute(options);
+                    return 0;
+                });
+            });
+
             app.Command("exec", c =>
             {
                 c.Description = "Run a script from a DLL.";
