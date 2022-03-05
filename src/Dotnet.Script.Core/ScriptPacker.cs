@@ -128,10 +128,10 @@ namespace Dotnet.Script.Core
         public String GenerateCode(String csxFilePath, List<String> headers = null)
         {
             String[] lines = File.ReadAllLines(csxFilePath);
-            List<String> sbUsing = new ();
-            List<String> sbBody = new ();
-            List<String> sbHeader = new ();
-            List<String> sbMain = new ();
+            List<String> usingLines = new ();
+            List<String> bodyLines = new ();
+            List<String> headerLines = new ();
+            List<String> mainLines = new ();
 
             bool bodyFlag = false;  // 是否是代码的 body 部分, !,#load,#r,"using"等视为 body 部分
             bool mainFlag = false;  // 是否进入 main 部分
@@ -150,7 +150,7 @@ namespace Dotnet.Script.Core
                 {
                     if (bodyFlag == false)
                     {
-                        sbHeader.Add(line);
+                        headerLines.Add(line);
                         continue;
                     }
                 }
@@ -159,7 +159,7 @@ namespace Dotnet.Script.Core
                 {
                     if(bodyFlag == false)
                     {
-                        sbUsing.Add(line);
+                        usingLines.Add(line);
                         continue;
                     }
                 }
@@ -168,28 +168,28 @@ namespace Dotnet.Script.Core
                 {
                     bodyFlag = true;
                     mainFlag = true;
-                    sbMain.Add(line);
+                    mainLines.Add(line);
                     continue;
                 }
 
                 if (txt.StartsWith("//") || String.IsNullOrEmpty(txt))
                 {
-                    if (bodyFlag == false) sbHeader.Add(line);
-                    else if (mainFlag == false) sbBody.Add(line);
-                    else sbMain.Add(line);
+                    if (bodyFlag == false) headerLines.Add(line);
+                    else if (mainFlag == false) bodyLines.Add(line);
+                    else mainLines.Add(line);
                     continue;
                 }
 
                 if (bodyFlag == false) bodyFlag = true;
 
                 if (mainFlag == true)
-                    sbMain.Add(line);
+                    mainLines.Add(line);
                 else
-                    sbBody.Add(line);
+                    bodyLines.Add(line);
             }
 
             StringBuilder sbOut = new StringBuilder();
-            foreach(var line in sbHeader)
+            foreach(var line in headerLines)
             {
                 String txt = line.TrimStart();
                 if (txt.StartsWith("#"))
@@ -206,32 +206,39 @@ namespace Dotnet.Script.Core
                 sbOut.AppendLine("using " + ns + ";");
             }
 
-            foreach (var line in sbUsing)
+            foreach (var line in usingLines)
             {
                 sbOut.AppendLine(line);
             }
 
             sbOut.AppendLine("public partial class " + PacketClassName + " {");
-            foreach (var line in sbBody)
+            foreach (var line in bodyLines)
             {
                 sbOut.AppendLine(line);
             }
 
-            if(sbMain.Count > 0)
+            if(mainLines.Count > 0)
             {
-                sbOut.AppendLine("public static int Main(string[] Args)");
+                String mainMethodName = "Main_" + PacketClassName;
+                sbOut.AppendLine("public void "+ mainMethodName + "(string[] Args)");
                 sbOut.AppendLine("{");
-                foreach (var line in sbMain)
+                foreach (var line in mainLines)
                 {
                     sbOut.AppendLine(line);
                 }
+                sbOut.AppendLine("}");
+
+                sbOut.AppendLine("public static int Main(string[] Args)");
+                sbOut.AppendLine("{");
+                sbOut.AppendLine(PacketClassName +" obj = new ();");
+                sbOut.AppendLine("obj." + mainMethodName + "(Args);");
                 sbOut.AppendLine("return 0;");
                 sbOut.AppendLine("}");
             }
 
             sbOut.AppendLine("}");
 
-            headers?.AddRange(sbHeader);
+            headers?.AddRange(headerLines);
 
             return sbOut.ToString();
         }
@@ -287,7 +294,7 @@ namespace Dotnet.Script.Core
                 else if(r.Mode == ReferenceResource.RefMode.Code)
                 {
                     FileInfo newFileInfo = new FileInfo(r.Value);
-                    GenerateSourceCode(newFileInfo, newFileInfo.Directory);
+                    GenerateSourceCode(newFileInfo, dirOutInfo);
                 }
             }
         }

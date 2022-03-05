@@ -91,7 +91,10 @@ namespace Dotnet.Script.Core
         private String RemoveQuotes(String text)
         {
             if (String.IsNullOrEmpty(text) || text.Length < 2) return text;
-            return text.Substring(1, text.Length - 2);
+            text = text.Substring(1);
+            int idx = text.IndexOf("\"");
+            if (idx >= 0) text = text.Substring(0,idx);
+            return text;
         }
 
         public override string ToString()

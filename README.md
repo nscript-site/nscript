@@ -54,14 +54,7 @@ nscript helloworld.csx
 
 ### 开发环境
 
-VS Code 安装 C# 插件，可直接支持 nscript 脚本的开发和调试。不过，当前版本的 omnisharp 对 .net 6.0 下的脚本支持存在问题。我 fork 了一个分支 (omnisharp-roslyn-nex)[https://github.com/nscript-site/omnisharp-roslyn-next] 解决了这个问题。请自行下载编译，修改 VS Code 中设置项后重启 VS Code 即可：
-
-```
-    "omnisharp.useModernNet": true,
-    "omnisharp.path": [PATH TO YOUT 'OmniSharp.dll'
-```
-
-有点麻烦是不？不想麻烦，就等待 omnisharp 的更新吧。
+VS Code 安装 C# 插件，可直接支持 nscript 脚本的开发和调试。
 
 ### 脚手架
 
@@ -250,15 +243,46 @@ nscript --no-cache a.csx
 
 ### 发布
 
-`dotnet script`的发布功能不强。nscript 未来会提供易用的发布功能(dotnet publish 的发布指令也比较复杂)，未来会支持以下发布模式：
+与 .net 和 dotnet script 不同，nscript 会侧重于对云原生及系统开发的支持，侧重于对无反射程序的支持。 nscript 兼容 `dotnet script` 的 `publish` 指令，然而， `dotnet script`的发布功能不强，同目录下有多个脚本文件会出错，不鼓励使用 `publish` 指令。
 
-- JIT：默认参数等价于 dotnet publish 下的 `-c release /p:PublishSingleFile=true /p:PublishTrimmed=true /p:EnableCompressionInSingleFile=true --self-contained`，经过测试，一个简单的 hello world 的发布尺寸为 5M 左右，使用 一个简单的 [EmbedIO](https://github.com/unosquare/embedio) webapi 程序，发布尺寸为 11-12M，这个尺寸已经非常小了，足以和 golang 媲美了；
+nscript 新添加了 `pack` 指令，`pack` 指令会将脚本文件转换成 `msbuild` 项目进行发布，默认会采用 `/p:PublishSingleFile=true /p:PublishTrimmed=true /p:EnableCompressionInSingleFile=true` 的配置。`pack` 指令支持 AOT 模式发布。
 
-- AOT：通过简单配置，能支持 AOT 发布，[zerosharp](https://github.com/MichalStrehovsky/zerosharp) 中，AOT程序可以做到数k的尺寸；
+目前 `pack` 指令的实现还很简单，使用时需要遵守一定规则：调用语句需要放在最下方，且添加 "//@main" 注释，例如：
 
-- 云原生：云原生会作为语言的基础设施，方便脚本的大规模部署和执行。
+```c#
+#r "nuget: EmbedIO, 3.4.3"
 
-与 .net 和 dotnet script 不同，nscript 会侧重于对云原生及系统开发的支持，侧重于对无反射程序的支持。
+using EmbedIO;
+using EmbedIO.WebApi;
+using EmbedIO.Actions;
+using EmbedIO.Files;
+
+WebServer CreateWebServer(string url)
+{
+    var server = new WebServer(o => o
+            .WithUrlPrefix(url)
+            .WithMode(HttpListenerMode.EmbedIO))
+        .WithLocalSessionManager()
+        .WithStaticFolder("/static/", "./webroot", true, m => m.WithContentCaching(true)) // Add static files after other modules to avoid conflicts
+        .WithModule(new ActionModule("/api", HttpVerbs.Get, HandleApi))
+        .WithModule(new ActionModule("/", HttpVerbs.Any, ctx => ctx.SendDataAsync(new { Message = "Hello!" })))
+        ;
+    return server;
+}
+
+Task HandleApi(IHttpContext ctx)
+{
+    return ctx.SendDataAsync("api");
+}
+
+//@main
+var url = "http://*:5000/";
+var server = CreateWebServer(url);
+server.RunAsync();
+Console.ReadKey();
+```
+
+上下文中，有且仅应该有1处 //@main 注释。
 
 ### 远程脚本
 

@@ -5,7 +5,7 @@ using EmbedIO.WebApi;
 using EmbedIO.Actions;
 using EmbedIO.Files;
 
-static WebServer CreateWebServer(string url)
+WebServer CreateWebServer(string url)
 {
     var server = new WebServer(o => o
             .WithUrlPrefix(url)
@@ -18,7 +18,7 @@ static WebServer CreateWebServer(string url)
     return server;
 }
 
-static Task HandleApi(IHttpContext ctx)
+Task HandleApi(IHttpContext ctx)
 {
     return ctx.SendDataAsync("api");
 }
