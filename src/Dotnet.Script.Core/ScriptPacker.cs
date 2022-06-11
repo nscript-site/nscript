@@ -24,6 +24,8 @@ namespace Dotnet.Script.Core
 
         public bool EnableAot = false;
 
+        public Commands.PublishType PublichType = Commands.PublishType.Executable;
+
         /// <summary>
         /// 引用的 nuget 包
         /// </summary>
@@ -52,6 +54,7 @@ namespace Dotnet.Script.Core
         {
             String proj = null;
             proj = TemplateLoader.ReadTemplate(EnableAot? "pack.aot.csproj.template":"pack.csproj.template");
+            proj = proj.Replace("OUTPUT_TYPE", PublichType == Commands.PublishType.Executable ? "Exe" : "Library");
             proj = proj.Replace("PACKAGE_REFERENCE", GetNugetReference());
             proj = proj.Replace("DLL_REFERENCE", GetDllReference());
             proj = proj.Replace("PATH_BASE_OUTPUT", Path.Combine(Path.GetTempPath(), PacketClassName, "bin"));
@@ -121,8 +124,10 @@ namespace Dotnet.Script.Core
         {
             if(EnableAot == false)
                 return "dotnet publish -c release /p:PublishSingleFile=true /p:PublishTrimmed=true /p:EnableCompressionInSingleFile=true -r @@RID --self-contained -o ./out".Replace("@@RID", rid);
+            else if(PublichType == Commands.PublishType.Executable)
+                return "dotnet publish  -c release -r @@RID -o ./out".Replace("@@RID", rid);
             else
-                return "dotnet publish -c release -r @@RID -o ./out".Replace("@@RID", rid);
+                return "dotnet publish /p:NativeLib=Shared /p:SelfContained=true -c release -r @@RID -o ./out".Replace("@@RID", rid);
         }
 
         public String GenerateCode(String csxFilePath, List<String> headers = null)
@@ -220,7 +225,7 @@ namespace Dotnet.Script.Core
             if(mainLines.Count > 0)
             {
                 String mainMethodName = "Main_" + PacketClassName;
-                sbOut.AppendLine("public void "+ mainMethodName + "(string[] Args)");
+                sbOut.AppendLine("public void "+ mainMethodName + "(IList<String> Args)");
                 sbOut.AppendLine("{");
                 foreach (var line in mainLines)
                 {
@@ -228,7 +233,7 @@ namespace Dotnet.Script.Core
                 }
                 sbOut.AppendLine("}");
 
-                sbOut.AppendLine("public static int Main(string[] Args)");
+                sbOut.AppendLine("public static int Main(String[] Args)");
                 sbOut.AppendLine("{");
                 sbOut.AppendLine(PacketClassName +" obj = new ();");
                 sbOut.AppendLine("obj." + mainMethodName + "(Args);");

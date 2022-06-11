@@ -25,6 +25,7 @@ namespace Dotnet.Script.Core.Commands
             var absolutePublishDirectory = publishDirectory.GetRootedPath();
             var packer = new ScriptPacker(_logFactory);
             packer.EnableAot = options.EnableAot;
+            packer.PublichType = options.PublishType;
             packer.GenerateProject(absoluteFilePath, publishDirectory);
         }
     }

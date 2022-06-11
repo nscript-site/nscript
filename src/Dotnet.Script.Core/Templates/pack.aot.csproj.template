@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<OutputType>Exe</OutputType>
+		<OutputType>OUTPUT_TYPE</OutputType>
 		<AssemblyName>ASSEMBLY_NAME</AssemblyName>
 		<TargetFramework>net6.0</TargetFramework>
 		<Nullable>enable</Nullable>

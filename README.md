@@ -517,6 +517,7 @@ NScript 的目标是高性能计算，常见的类库有：
 - [FFmpeg.AutoGen](https://github.com/Ruslan-B/FFmpeg.AutoGen), FFmpeg auto generated unsafe bindings for C#/.NET and Core (Linux, MacOS and Mono).
 - [TorchSharp](https://github.com/dotnet/TorchSharp),.NET bindings for the Pytorch engine
 - [PaddleSharp](https://github.com/sdcb/PaddleSharp), .NET/C# binding for Baidu paddle inference library and PaddleOCR
+- [Stride](https://github.com/stride3d/stride), Stride Game Engine (formerly Xenko). Stride is an open-source C# game engine for realistic rendering and VR. The engine is highly modular and aims at giving game makers more flexibility in their development. Stride comes with an editor that allows you to create and manage the content of your games or applications visually and intuitively.
 
 进一步的资源：
 
