@@ -225,6 +225,14 @@ server.RunAsync();
 Console.ReadKey();
 ```
 
+### cvt
+
+nscript cvt 指令可以从 .csproj 文件中提取出引用信息，转换成脚本文件里的引用指令。使用方式：
+
+```shell
+nscript cvt xxx.csproj
+```
+
 ### 缓存
 
 这里是 dotnet script 需要改进的地方。当 a.csx 引用 b.dll 时，当 b.dll 改变了，直接运行 a.csx 仍然引用的是改变前的 dll。可以通过传递 **--no-cache** 标记来覆盖自动缓存，这样每次执行脚本时都进行编译编译

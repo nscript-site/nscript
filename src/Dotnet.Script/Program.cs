@@ -245,6 +245,29 @@ namespace Dotnet.Script
                 });
             });
 
+            app.Command("cvt", c =>
+            {
+                c.Description = "将 csproj 文件里的引用信息转换为脚本的引用信息";
+                var fileNameArgument = c.Argument("filename", "csproj 文件名称");
+                c.HelpOption(helpOptionTemplate);
+                c.OnExecute(() =>
+                {
+                    if (fileNameArgument.Value == null)
+                    {
+                        c.ShowHelp();
+                        return 0;
+                    }
+
+                    var options = new ConvertCommandOptions
+                    (
+                        new ScriptFile(fileNameArgument.Value)
+                    );
+                    var logFactory = CreateLogFactory(verbosity.Value(), debugMode.HasValue());
+                    new ConvertCommand(ScriptConsole.Default, logFactory).Execute(options);
+                    return 0;
+                });
+            });
+
             app.Command("exec", c =>
             {
                 c.Description = "Run a script from a DLL.";
